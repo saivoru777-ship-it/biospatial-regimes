@@ -1,0 +1,415 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Packages ──
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{siunitx}
+\usepackage{caption}
+\usepackage{lineno}
+
+\linenumbers
+
+% ── Macros ──
+\newcommand{\vmr}{\mathrm{VMR}}
+
+% ── Title ──
+\title{Biospatial Regime Space: VMR Fingerprint Descriptors Resolve\\a Clustering Manifold Across Spatial Organization Mechanisms}
+
+\author{
+  Pretham Voruganti\textsuperscript{1}
+  \\[0.5em]
+  \small\textsuperscript{1}Independent Researcher
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ══════════════════════════════════════════════════════════════
+\begin{abstract}
+Multiscale variance-to-mean ratio (VMR) fingerprints detect spatial
+organization across biological scales, but the question of which
+\emph{generative mechanisms} produce distinguishable fingerprints---and
+which do not---has remained open. Here we address this by simulating
+seven canonical spatial organization mechanisms (random, clustered,
+exclusion, layered, compartmental, branch-constrained, hierarchical)
+with continuous parameter sweeps (3,750 total simulated patterns, 50
+realizations per parameter setting), extracting six VMR-derived
+fingerprint descriptors, and constructing a PCA-based regime space.
+
+We find that VMR descriptors resolve a structured \emph{clustering
+manifold}: branch-constrained, hierarchical, compartmental, and
+clustered regimes occupy distinct, separable regions of descriptor space
+(three PCs explain 96.0\% of variance). In contrast, exclusion, layered,
+and random regimes collapse into a shared \emph{null cloud}, indicating
+that VMR fingerprints---while powerful for detecting clustering-positive
+mechanisms---do not distinguish sub-Poisson spatial organization. This
+is an honest boundary of the method, not a failure: the clustering
+manifold is real and stable.
+
+Projecting 72 empirical fingerprints from three biological systems---protein
+nanoclusters (SMLM, nm scale), synaptic organization (dendrites,
+\si{\micro\meter} scale), and cell type architecture (tissue,
+\si{\milli\meter} scale)---into this simulation-defined space, we find
+that empirical data land in biologically interpretable regions: SMLM
+near clustered, dendrites near layered, and tissue distributed across
+multiple regimes. 44/72 empirical fingerprints are flagged as
+out-of-regime, suggesting that real biological organization often
+exceeds the complexity of single-mechanism simulations.
+\end{abstract}
+
+\clearpage
+
+% ══════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:intro}
+
+Spatial point pattern analysis has a long history in ecology, epidemiology,
+and materials science \citep{Diggle2003, Baddeley2015, Ripley1977}. Recently,
+multiscale variance-to-mean ratio (VMR) fingerprints have been applied to
+biological systems at scales ranging from protein nanoclusters (nm) to cell
+type organization in tissue (mm), providing a unified framework for detecting
+and characterizing spatial structure.
+
+A natural question arises: \emph{which spatial organization mechanisms produce
+distinguishable VMR fingerprints, and which are degenerate?} If two
+fundamentally different mechanisms produce indistinguishable fingerprints, the
+method cannot resolve them---and users should know this.
+
+Here we take a simulation-first approach. We define seven canonical spatial
+organization mechanisms spanning the space of common biological patterns,
+simulate each with continuous parameter sweeps to create regime
+\emph{clouds} rather than single points, extract fingerprint descriptors,
+and ask: does a stable, interpretable regime space emerge?
+
+The answer is nuanced. VMR descriptors resolve a structured manifold of
+clustering-positive mechanisms (clustered, compartmental, hierarchical,
+branch-constrained) but place sub-Poisson regimes (exclusion, layered,
+random) in a shared null cloud. We present this as an honest characterization
+of what VMR fingerprints can and cannot distinguish.
+
+
+% ══════════════════════════════════════════════════════════════
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Simulated Spatial Mechanisms}
+
+All simulations operate on a $10{,}000 \times 10{,}000$ arbitrary unit ROI
+with 2,000 points. Seven mechanisms are simulated with parameter sweeps:
+
+\begin{enumerate}
+  \item \textbf{Random}: Uniform Poisson process. Sweep: point density
+    (500--10,000 points).
+  \item \textbf{Clustered}: Thomas process \citep{Thomas1949}. Sweep:
+    cluster radius (50--2,000 a.u.).
+  \item \textbf{Exclusion}: Simple sequential inhibition (SSI) via KD-tree.
+    Sweep: minimum inter-point distance (10--400 a.u.).
+  \item \textbf{Layered}: Gaussian bands along one axis. Sweep: layer
+    width fraction (0.1--1.0).
+  \item \textbf{Compartmental}: SSI-placed compartment centers with
+    Thomas-process sub-clustering. Sweep: number of compartments (2--25).
+  \item \textbf{Branch-constrained}: L-system branching tree with Gaussian
+    jitter. Sweep: branch width (5--500 a.u.).
+  \item \textbf{Hierarchical}: Three-level nested Thomas process. Sweep:
+    inter-level scale ratio (2--20).
+\end{enumerate}
+
+Each parameter setting is simulated 50 times, yielding 3,750 total point
+patterns.
+
+\subsection{VMR Fingerprinting}
+
+For each simulated pattern, we compute multiscale VMR fingerprints using a
+$256 \times 256$ grid at 12 logarithmically spaced scales. A complete
+spatial randomness (CSR) null of 20 Poisson realizations provides the
+baseline. The VMR ratio curve is $\vmr_\text{ratio}(s) =
+\vmr_\text{observed}(s) / \vmr_\text{null}(s)$.
+
+\subsection{Fingerprint Descriptors}
+
+Six primary descriptors are extracted from each $\log_2(\vmr_\text{ratio})$
+curve:
+
+\begin{enumerate}
+  \item \textbf{Peak height}: $\max_s \log_2(\vmr_\text{ratio}(s))$
+  \item \textbf{Threshold scale}: first normalized scale where
+    $|\log_2(\vmr_\text{ratio})| > 0.5$
+  \item \textbf{Width}: FWHM in log-scale decades
+  \item \textbf{Small-scale slope}: slope over the first third of scales
+  \item \textbf{Large-scale slope}: slope over the last third of scales
+  \item \textbf{Integrated excess}: $\int \log_2(\vmr_\text{ratio})\,
+    d(\log s)$
+\end{enumerate}
+
+Two supplementary descriptors---anisotropy (eigenvalue ratio of 2D
+covariance) and multimodality (second peak prominence ratio)---are
+computed but not used in the embedding.
+
+\subsection{Regime Space Construction}
+
+PCA is fitted on the 3,750 simulated descriptor vectors (standardized to
+zero mean, unit variance). The first three principal components define the
+regime space. Empirical fingerprints are projected into this space via the
+same standardization and PCA transformation---they do not influence the
+embedding.
+
+Regime separability is quantified by silhouette score across all seven
+regimes. Soft regime affinity is computed via Gaussian KDE fitted per
+regime in the 3D PCA space, with affinities normalized to sum to 1.
+Out-of-regime status is flagged when an empirical point's nearest-neighbor
+distance to any simulated point exceeds the 95th percentile of
+within-simulation NN distances.
+
+\subsection{Empirical Data}
+
+72 empirical VMR fingerprints are loaded from three biological systems:
+
+\begin{itemize}
+  \item \textbf{Tissue} (44 fingerprints): Allen Brain Cell Atlas MERFISH,
+    cell type VMR ratios from isocortex, hippocampus, and thalamus.
+  \item \textbf{SMLM} (4 fingerprints): single-molecule localization
+    microscopy of synaptic receptors, nuclear pores, membrane domains,
+    and a negative control.
+  \item \textbf{Dendrites} (24 fingerprints): excitatory and inhibitory
+    synaptic inputs across 12 cortical neuron types from MICrONS
+    connectomics data.
+\end{itemize}
+
+
+% ══════════════════════════════════════════════════════════════
+\section{Results}
+\label{sec:results}
+
+\subsection{The clustering manifold is real; the null cloud is degenerate}
+
+PCA on 3,750 simulated descriptor vectors yields a clear structure
+(Fig.~\ref{fig:phase_diagram}). PC1 (72.3\% variance) separates
+clustering-positive regimes from the null cloud, loading primarily on
+peak height, integrated excess, and threshold scale
+(Fig.~\ref{fig:pca_loadings}). PC2 (16.0\%) captures scale structure
+differences among clustering regimes. PC3 (7.7\%) adds minor additional
+separation. Together, three components explain 96.0\% of total variance.
+
+The overall silhouette score across all seven regimes is 0.172, reflecting
+the degeneracy of the null cloud. Within the clustering manifold,
+branch-constrained, hierarchical, compartmental, and clustered regimes
+are well-separated (Fig.~\ref{fig:descriptor_distributions}). Random,
+exclusion, and layered regimes overlap substantially.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_phase_diagram.pdf}
+  \caption{Biospatial regime space (PC1 vs PC2). Clustering-positive
+  regimes (clustered, compartmental, hierarchical, branch-constrained)
+  form a structured manifold, while sub-Poisson regimes (random, exclusion,
+  layered) collapse into a null cloud (dashed ellipse). Empirical
+  fingerprints from tissue (stars), SMLM (triangles), and dendrites
+  (diamonds) are projected into the simulation-defined space.}
+  \label{fig:phase_diagram}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_simulated_patterns.pdf}
+  \caption{Example point patterns from each of the seven simulated regimes.}
+  \label{fig:simulated_patterns}
+\end{figure}
+
+\subsection{Empirical projections are biologically interpretable}
+
+Projecting 72 empirical fingerprints into the simulation-defined regime
+space (Fig.~\ref{fig:phase_diagram}), we observe biologically coherent
+placement:
+
+\begin{itemize}
+  \item \textbf{SMLM}: synaptic receptors, nuclear pores, and membrane
+    domains project near the clustered regime; the negative control projects
+    near random.
+  \item \textbf{Dendrites}: most synaptic input fingerprints project near
+    layered, consistent with distance-dependent synapse placement along
+    dendritic branches. Some inhibitory inputs on specific cell types project
+    near hierarchical.
+  \item \textbf{Tissue}: cell type fingerprints distribute broadly across
+    exclusion, layered, clustered, and hierarchical regimes, reflecting the
+    diversity of tissue-scale organization.
+\end{itemize}
+
+44 of 72 empirical fingerprints (61\%) are flagged as out-of-regime
+(NN distance exceeds the 95th percentile threshold of 0.260), suggesting
+that real biological spatial organization often reflects mixtures or
+mechanisms not captured by single-parameter simulations.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_regime_affinity.pdf}
+  \caption{KDE-based soft regime affinity profiles for all 72 empirical
+  fingerprints. Each row shows the normalized probability of the fingerprint
+  under each regime's distribution in PCA space.}
+  \label{fig:regime_affinity}
+\end{figure}
+
+\subsection{Mixture recovery is limited}
+
+Known mixtures of simulated regimes are poorly recovered by the KDE-based
+affinity framework (Fig.~\ref{fig:mixture_validation}). A 70\% layered +
+30\% clustered mixture yields max recovery error of 0.387; a 50\%
+compartmental + 50\% exclusion mixture yields 0.999 (near-total failure).
+This confirms that the soft affinity framework captures broad regime
+proximity but cannot reliably decompose mixtures---consistent with the
+null cloud degeneracy and the limitations of single-mechanism KDEs for
+multi-modal patterns.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_mixture_validation.pdf}
+  \caption{Mixture validation: known mixture proportions (blue) versus
+  recovered KDE-based affinities (coral) for three test mixtures.}
+  \label{fig:mixture_validation}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{What VMR fingerprints resolve.}
+The central result is that VMR-derived descriptors define a real, stable
+clustering manifold: mechanisms that produce above-Poisson variance
+(clustering, compartmentalization, hierarchical nesting, branch
+confinement) are distinguishable in a 6D descriptor space compressed
+to 3 PCs explaining 96.0\% of variance. This is not a trivial result---it
+means the VMR framework does more than detect ``something non-random'';
+it provides mechanistic discrimination among clustering-positive processes.
+
+\paragraph{What VMR fingerprints do not resolve.}
+Equally important is the negative result: exclusion (sub-Poisson
+regularity), layered organization, and randomness produce nearly
+indistinguishable VMR fingerprints. This is because VMR primarily measures
+count overdispersion, which is near 1 for all three. Discriminating these
+regimes would require additional descriptors---anisotropy for layered
+patterns, pair correlation functions for exclusion---that go beyond the
+VMR curve.
+
+\paragraph{Implications for empirical studies.}
+The 61\% out-of-regime rate for empirical fingerprints is informative,
+not alarming. It means that most real biological systems produce spatial
+patterns more complex than any single simulated mechanism, likely
+reflecting mixtures or multi-scale processes. The simulation-defined
+regime space provides a coordinate system for locating empirical data,
+not a classification scheme.
+
+\paragraph{Limitations.}
+Each regime is swept along a single parameter axis; real mechanisms have
+multiple interacting parameters (e.g., cluster radius $\times$ number of
+clusters $\times$ background fraction). Multi-parameter sweeps would
+produce denser manifolds and potentially reveal additional structure.
+The KDE-based mixture recovery fails because KDEs fitted to
+single-mechanism clouds do not model the between-regime interpolation
+that mixtures create. More sophisticated mixture models (e.g.,
+density-ratio estimation) could improve this.
+
+\paragraph{Relationship to companion studies.}
+This work provides theoretical context for two companion empirical
+studies: one applying the VMR framework to cell type organization in the
+mouse brain (spatial transcriptomics), and another to protein
+nanoclusters (SMLM). The regime space defined here offers a shared
+reference frame for interpreting fingerprints across biological scales.
+
+
+% ══════════════════════════════════════════════════════════════
+\section*{Data Availability}
+
+All code, simulated results, and figures are available at
+\url{https://github.com/saivoru777-ship-it/biospatial-regimes}.
+
+
+% ══════════════════════════════════════════════════════════════
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+
+% ══════════════════════════════════════════════════════════════
+\clearpage
+\appendix
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{figure}{0}
+
+\section*{Supplementary Figures}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_pca_loadings.pdf}
+  \caption{PCA loadings on the six fingerprint descriptors for each
+  principal component.}
+  \label{fig:pca_loadings}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_descriptor_distributions.pdf}
+  \caption{Distributions of each fingerprint descriptor, colored by regime.}
+  \label{fig:descriptor_distributions}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_separability.pdf}
+  \caption{Regime separability: overall silhouette score (0.172) and
+  pairwise Mahalanobis distances between regime clouds.}
+  \label{fig:separability}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/diag_pca_scatter.pdf}
+  \caption{Diagnostic PCA scatter showing all 3,750 simulated descriptors
+  colored by regime, with parameter sweep gradients visible as continuous
+  clouds.}
+  \label{fig:diag_pca}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/diag_vmr_sweeps.pdf}
+  \caption{VMR ratio curves across parameter sweeps for each regime,
+  showing how fingerprint shape changes continuously with mechanism
+  parameters.}
+  \label{fig:diag_vmr}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/diag_descriptor_boxplots.pdf}
+  \caption{Box plots of each descriptor by regime, showing separation
+  and overlap.}
+  \label{fig:diag_boxplots}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/diag_sweep_monotonicity.pdf}
+  \caption{Sweep monotonicity: how each descriptor changes across the
+  parameter sweep for each regime. Monotonic trends indicate interpretable
+  parameter--descriptor relationships.}
+  \label{fig:diag_monotonicity}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../figures/fig_pilot_branch_test.pdf}
+  \caption{Pilot test confirming that branch-constrained patterns are
+  separable from clustered patterns in the VMR descriptor space.}
+  \label{fig:pilot}
+\end{figure}
+
+\end{document}
