@@ -48,13 +48,13 @@ fingerprint descriptors, and constructing a PCA-based regime space.
 
 We find that VMR descriptors resolve a structured \emph{clustering
 manifold}: branch-constrained, hierarchical, compartmental, and
-clustered regimes occupy distinct, separable regions of descriptor space
+clustered regimes occupy distinct regions of descriptor space
 (three PCs explain 96.0\% of variance). In contrast, exclusion, layered,
 and random regimes collapse into a shared \emph{null cloud}, indicating
-that VMR fingerprints---while powerful for detecting clustering-positive
-mechanisms---do not distinguish sub-Poisson spatial organization. This
-is an honest boundary of the method, not a failure: the clustering
-manifold is real and stable.
+that VMR fingerprints---while informative for distinguishing among
+clustering-positive process families---do not distinguish sub-Poisson
+spatial organization. This is an expected consequence of VMR measuring
+count overdispersion, which is near 1 for all three regime types.
 
 Projecting 72 empirical fingerprints from three biological systems---protein
 nanoclusters (SMLM, nm scale), synaptic organization (dendrites,
@@ -63,8 +63,9 @@ nanoclusters (SMLM, nm scale), synaptic organization (dendrites,
 that empirical data land in biologically interpretable regions: SMLM
 near clustered, dendrites near layered, and tissue distributed across
 multiple regimes. 44/72 empirical fingerprints are flagged as
-out-of-regime, suggesting that real biological organization often
-exceeds the complexity of single-mechanism simulations.
+out-of-regime, indicating that they lie outside the simulated reference
+distribution---possibly reflecting mechanism mixtures, multi-parameter
+interactions, observation noise, or model misspecification.
 \end{abstract}
 
 \clearpage
@@ -200,11 +201,13 @@ peak height, integrated excess, and threshold scale
 differences among clustering regimes. PC3 (7.7\%) adds minor additional
 separation. Together, three components explain 96.0\% of total variance.
 
-The overall silhouette score across all seven regimes is 0.172, reflecting
-the degeneracy of the null cloud. Within the clustering manifold,
-branch-constrained, hierarchical, compartmental, and clustered regimes
-are well-separated (Fig.~\ref{fig:descriptor_distributions}). Random,
-exclusion, and layered regimes overlap substantially.
+The overall silhouette score across all seven regimes is 0.172,
+dominated by the degeneracy of the null cloud where three regimes
+overlap. Within the clustering manifold, branch-constrained,
+hierarchical, compartmental, and clustered regimes are more
+distinguishable (Fig.~\ref{fig:descriptor_distributions}), though the
+low global silhouette underscores that VMR descriptors alone do not
+cleanly separate all seven regime types.
 
 \begin{figure}[htbp]
   \centering
@@ -252,22 +255,27 @@ mechanisms not captured by single-parameter simulations.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{../figures/fig_regime_affinity.pdf}
-  \caption{KDE-based soft regime affinity profiles for all 72 empirical
-  fingerprints. Each row shows the normalized probability of the fingerprint
-  under each regime's distribution in PCA space.}
+  \caption{KDE-based soft regime similarity profiles for all 72 empirical
+  fingerprints. Each row shows the normalized density of the fingerprint
+  under each regime's distribution in PCA space. These values reflect
+  geometric proximity in descriptor space, not mechanism probabilities
+  or mixture proportions (see Section~\ref{sec:discussion}).}
   \label{fig:regime_affinity}
 \end{figure}
 
 \subsection{Mixture recovery is limited}
 
 Known mixtures of simulated regimes are poorly recovered by the KDE-based
-affinity framework (Fig.~\ref{fig:mixture_validation}). A 70\% layered +
+similarity framework (Fig.~\ref{fig:mixture_validation}). A 70\% layered +
 30\% clustered mixture yields max recovery error of 0.387; a 50\%
 compartmental + 50\% exclusion mixture yields 0.999 (near-total failure).
-This confirms that the soft affinity framework captures broad regime
-proximity but cannot reliably decompose mixtures---consistent with the
-null cloud degeneracy and the limitations of single-mechanism KDEs for
-multi-modal patterns.
+This is an important negative result: KDE-based similarities in PCA space
+should not be interpreted as mixture proportions or mechanism probabilities.
+The failure is consistent with the null cloud degeneracy and with the
+general limitation that KDEs fitted to single-mechanism distributions
+cannot model the interpolation that mixtures create. Users of this
+framework should treat the similarity profiles as broad descriptive
+coordinates, not as quantitative mechanistic decompositions.
 
 \begin{figure}[htbp]
   \centering
@@ -283,13 +291,16 @@ multi-modal patterns.
 \label{sec:discussion}
 
 \paragraph{What VMR fingerprints resolve.}
-The central result is that VMR-derived descriptors define a real, stable
-clustering manifold: mechanisms that produce above-Poisson variance
+The central result is that VMR-derived descriptors define a structured
+clustering manifold: process families that produce above-Poisson variance
 (clustering, compartmentalization, hierarchical nesting, branch
-confinement) are distinguishable in a 6D descriptor space compressed
-to 3 PCs explaining 96.0\% of variance. This is not a trivial result---it
-means the VMR framework does more than detect ``something non-random'';
-it provides mechanistic discrimination among clustering-positive processes.
+confinement) occupy distinguishable regions of a 6D descriptor space
+compressed to 3 PCs explaining 96.0\% of variance. VMR descriptors do
+more than detect ``something non-random''; they discriminate among
+specified clustering-positive process families. We note, however, that
+discrimination among a fixed set of simulated alternatives is weaker
+than mechanism identification, which would require excluding
+unexamined alternatives.
 
 \paragraph{What VMR fingerprints do not resolve.}
 Equally important is the negative result: exclusion (sub-Poisson
@@ -301,12 +312,15 @@ patterns, pair correlation functions for exclusion---that go beyond the
 VMR curve.
 
 \paragraph{Implications for empirical studies.}
-The 61\% out-of-regime rate for empirical fingerprints is informative,
-not alarming. It means that most real biological systems produce spatial
-patterns more complex than any single simulated mechanism, likely
-reflecting mixtures or multi-scale processes. The simulation-defined
-regime space provides a coordinate system for locating empirical data,
-not a classification scheme.
+44 of 72 empirical fingerprints (61\%) lie outside the simulated
+reference distribution. This could reflect mechanism mixtures,
+multi-parameter interactions not captured by single-axis sweeps,
+observation noise or preprocessing differences, or genuine biological
+complexity exceeding single-mechanism simulations. Without controlled
+tests distinguishing these explanations, the out-of-regime rate should
+be interpreted cautiously. The simulation-defined regime space provides
+a coordinate system for locating empirical data, not a classification
+scheme.
 
 \paragraph{Limitations.}
 Each regime is swept along a single parameter axis; real mechanisms have
